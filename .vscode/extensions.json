@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "zhuangtongfa.material-theme",
+        "stylelint.vscode-stylelint"
+    ]
+}
