@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS registration;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS users_events;
+
 
 CREATE TABLE events (
   id SERIAL PRIMARY KEY,
@@ -22,6 +28,15 @@ CREATE TABLE users (
   username character varying(64) NOT NULL UNIQUE,
   password character varying(255) NOT NULL,
   isAdmin BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE users_events (
+  id serial primary key,
+  "user" INTEGER NOT NULL,
+  "event" INTEGER NOT NULL,
+  comment VARCHAR(255),
+  CONSTRAINT "user" FOREIGN KEY ("user") REFERENCES users (id),
+  CONSTRAINT "event" FOREIGN KEY ("event") REFERENCES events (id)
 );
 
 DROP ROLE IF EXISTS "vef2-user";

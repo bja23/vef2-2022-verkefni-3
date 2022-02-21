@@ -15,6 +15,7 @@ import {
   findAllUsers,
   createUser,
   findAllEvents,
+  createEvent,
 } from './users.js';
 
 const {
@@ -94,7 +95,7 @@ app.post('/users/login', async (req, res) => {
     const payload = { id: user.id };
     const tokenOptions = { expiresIn: tokenLifetime };
     const token = jwt.sign(payload, jwtOptions.secretOrKey, tokenOptions);
-    return res.json({ token });
+    return res.status(201).json({ token });
   }
 
   return res.status(401).json({ error: 'Invalid password' });
@@ -128,10 +129,10 @@ app.get('/users/', requireAuthentication, async(req, res) => {
   const isUserAdmin = await isAdmin(req.user.username);
   if(isUserAdmin.isadmin){
     const all = await findAllUsers();
-    res.json(all);
+    return res.status(201).json(all);
   }
   else{
-    res.json({ error: 'Notandi er ekki stjórnandi' });
+    res.status(400).json({ error: 'Notandi er ekki stjórnandi' });
   }
 });
 
@@ -177,10 +178,10 @@ app.post('/users/register', validation,validationRegister, sanitazion, async (re
     const myData = [
       {userCreted: test, name: name, username: username, }
     ];
-    return res.json(myData);
+    return res.status(201).json(myData);
   }
 
-  return res.json({error: "heppnaðist ekki"});
+  return res.status(400).json({error: "heppnaðist ekki"});
 });
 
 app.get('/users/me', requireAuthentication, async(req, res) => {
@@ -188,8 +189,7 @@ app.get('/users/me', requireAuthentication, async(req, res) => {
   const showData = [
     {id: myData.id,name: myData.name, username: myData.username, token: req.user.token, }
   ];
-
-  return res.json(showData);
+  return res.status(201).json(showData);
 });
 
 app.get('/users/:id', requireAuthentication, async(req, res) => {
@@ -202,24 +202,31 @@ app.get('/users/:id', requireAuthentication, async(req, res) => {
       const showData = [
         {id: all.id,name: all.name, username: all.username, }
       ];
-      return res.json(showData);
+      return res.status(201).json(showData);
     }
     else{
       return res.status(404).json({ error: 'Not found' });
     }
   }
   else{
-    return res.json({ error: 'Notandi er ekki stjórnandi' });
+    return res.status(400).json({ error: 'Notandi er ekki stjórnandi' });
   }
 });
 
 app.get('/events/', async(req, res) => {
   const myData = await findAllEvents();
-  return res.json(myData);
+  if(myData === false){
+    return res.status(401).json({error: "no data to show"});
+  }
+  return res.status(201).json(myData);
 });
 
-app.post('/events/',requireAuthentication, (req, res) => {
-  const { title = '' } = req.body;
+app.post('/events/',requireAuthentication, async (req, res) => {
+  const { name, description } = req.body;
+  const user = req.user.id;
+
+  const test = await createEvent(name, description, user);
+
 
   // Hér ætti að vera meira robust validation
   if (typeof title !== 'string' || title.length === 0) {

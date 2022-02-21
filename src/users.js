@@ -136,3 +136,54 @@ export async function createUser(name,username,password) {
   
     return null;
   }
+
+  
+
+  export async function addToConnectionTable(id, id2){
+    console.log(id, id2);
+  };
+
+  export async function createEvent(name, description, id) {
+    const slug = getSlug(name);
+
+    const q = `INSERT INTO events (name, slug, description, created, updated)
+        VALUES($1, $2, $3, $4, $5)`;
+    const values = [name,slug, description,new Date(),new Date()];
+    try {
+      const result = await query(q, values);
+      console.log("tstest: ",result);
+      const ac = await addToConnectionTable(id, id);
+      return true;
+
+    } catch (e) {
+      console.error('Gat ekki búið til event');
+      return false;
+    }
+  
+    return null;
+  }
+
+  export function getSlug(name){
+    const slug2 = [];
+
+    // eslint-disable-next-line no-plusplus
+   for (let i = 0; i < name.length; i++) {
+     const ch = name[i].toLowerCase();
+     const char = ch
+       .replace(' ', '-')
+       .replace('ð', 'd')
+       .replace('þ', 'th')
+       .replace('ö', 'o')
+       .replace('á', 'a')
+       .replace('é', 'e')
+       .replace('í', 'i')
+       .replace('ó', 'o')
+       .replace('ú', 'u')
+       .replace('ý', 'y')
+       .replace('æ', 'ae');
+     slug2.push(char);
+   }
+ 
+   const slug = slug2.join('');
+   return slug;
+  }
