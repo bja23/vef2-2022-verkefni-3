@@ -16,6 +16,7 @@ import {
   createUser,
   findAllEvents,
   createEvent,
+  findEvent,
 } from './users.js';
 
 const {
@@ -222,29 +223,27 @@ app.get('/events/', async(req, res) => {
 });
 
 app.post('/events/',requireAuthentication, async (req, res) => {
-  const { name, description } = req.body;
+  const { name = '', description = '' } = req.body;
   const user = req.user.id;
 
+
   const test = await createEvent(name, description, user);
-
-
-  // Hér ætti að vera meira robust validation
-  if (typeof title !== 'string' || title.length === 0) {
-    return res.status(400).json({
-      field: 'title',
-      error: 'Title must be a non-empty string',
-    });
+  if(test){
+    return res.status(201).json({'worked': 'TRUE'});
   }
 
-  const item = { id: nextId(), title };
-  data.push(item);
-
-  return res.status(201).json(item);
+  return res.status(400).json({"error": "i dont know"});
 });
 
 
-app.get('/events/:id', (req, res) => {
+app.get('/events/:id', async (req, res) => {
   const { id } = req.params;
+
+  const myData = await findEvent(id);
+  if((myData === false )|| (myData === [])){
+    return res.status(401).json({error: "no data to show"});
+  }
+  return res.status(201).json(myData);
 
   const item = data.find((i) => i.id === Number.parseInt(id, 10));
 
@@ -253,6 +252,10 @@ app.get('/events/:id', (req, res) => {
   }
 
   return res.status(404).json({ error: 'Not found' });
+});
+
+app.patch('/:id', async (req, res) => {
+
 });
 
 /*

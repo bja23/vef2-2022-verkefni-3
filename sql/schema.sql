@@ -2,25 +2,6 @@ DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS registration;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS events;
-DROP TABLE IF EXISTS users_events;
-
-
-CREATE TABLE events (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(64) not null,
-  slug VARCHAR(64) not null,
-  description VARCHAR(255),
-  created DATE,
-  updated DATE
-);
-
-CREATE TABLE registration (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(64) not null,
-  comment VARCHAR(255),
-  event INT,
-  created DATE
-);
 
 CREATE TABLE users (
   id serial primary key,
@@ -30,14 +11,26 @@ CREATE TABLE users (
   isAdmin BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE users_events (
-  id serial primary key,
-  "user" INTEGER NOT NULL,
-  "event" INTEGER NOT NULL,
-  comment VARCHAR(255),
-  CONSTRAINT "user" FOREIGN KEY ("user") REFERENCES users (id),
-  CONSTRAINT "event" FOREIGN KEY ("event") REFERENCES events (id)
+CREATE TABLE events (
+  id SERIAL PRIMARY KEY,
+  "creator" INTEGER NOT NULL,
+  name VARCHAR(64) not null,
+  slug VARCHAR(64) not null,
+  description VARCHAR(255),
+  created DATE,
+  updated DATE,
+  CONSTRAINT "creator" FOREIGN KEY ("creator") REFERENCES users (id)
 );
+
+CREATE TABLE registration (
+  id SERIAL PRIMARY KEY,
+  "name" INTEGER not null,
+  comment VARCHAR(255),
+  event INT,
+  created DATE,
+  CONSTRAINT "name" FOREIGN KEY ("name") REFERENCES users (id)
+);
+
 
 DROP ROLE IF EXISTS "vef2-user";
 CREATE USER "vef2-user" WITH ENCRYPTED PASSWORD '123';

@@ -137,22 +137,30 @@ export async function createUser(name,username,password) {
     return null;
   }
 
+  export async function findEvent(id) {
+    const q = 'SELECT name, slug, description, created, updated FROM events WHERE id = $1';
+    const values = [id];
   
+    try {
+      const result = await query(q, values);
+        return result.rows;
 
-  export async function addToConnectionTable(id, id2){
-    console.log(id, id2);
-  };
+    } catch (e) {
+      console.error('Gat ekki fundið events');
+      return false;
+    }
+  
+    return null;
+  }
 
   export async function createEvent(name, description, id) {
     const slug = getSlug(name);
 
-    const q = `INSERT INTO events (name, slug, description, created, updated)
-        VALUES($1, $2, $3, $4, $5)`;
-    const values = [name,slug, description,new Date(),new Date()];
+    const q = `INSERT INTO events ("creator", name, slug, description, created, updated)
+        VALUES($1, $2, $3, $4, $5, $6)`;
+    const values = [id, name,slug, description,new Date(),new Date()];
     try {
       const result = await query(q, values);
-      console.log("tstest: ",result);
-      const ac = await addToConnectionTable(id, id);
       return true;
 
     } catch (e) {
