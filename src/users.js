@@ -4,7 +4,18 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL;
+
+
+
+const { DATABASE_URL: connectionString, NODE_ENV: nodeEnv = 'development' } =
+  process.env;
+
+if (!connectionString) {
+  console.error('vantar DATABASE_URL í .env');
+  process.exit(-1);
+}
+
+const ssl = nodeEnv === 'production' ? { rejectUnauthorized: false } : false;
 
 const pool = new pg.Pool({ connectionString });
 
