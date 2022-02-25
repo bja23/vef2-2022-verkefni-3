@@ -38,6 +38,8 @@ if (!jwtSecret || !databaseUrl) {
   process.exit(1);
 }
 
+const ssl = nodeEnv === 'production' ? { rejectUnauthorized: false } : false;
+
 const app = express();
 
 app.use(express.json());
