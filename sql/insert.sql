@@ -12,12 +12,12 @@ INSERT INTO events ("creator",name,slug,description,created,updated )
 VALUES(1,'Lokaverkefni 2022', 'lokaverkefni-20222','Lokaverkefni, áfangi með stærra verkefni','2022-01-1', '2022-01-01');
 
 
-INSERT INTO registration ("name", comment, event, created)
+INSERT INTO registration ("name", comment, "event", created)
 VALUES(1, 'Þetta verður skemmtilegur áfangi', 1, '2022-01-01');
 
-INSERT INTO registration ("name", comment, event, created)
+INSERT INTO registration ("name", comment, "event", created)
 VALUES(1, 'Þetta verður skemmtilegur áfangi', 2, '2022-01-01');
 
-INSERT INTO registration ("name", comment, event, created)
+INSERT INTO registration ("name", comment, "event", created)
 VALUES(1, 'Þetta verður skemmtilegur áfangi', 3, '2022-01-01');
 

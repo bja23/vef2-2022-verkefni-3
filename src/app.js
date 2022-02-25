@@ -17,6 +17,12 @@ import {
   findAllEvents,
   createEvent,
   findEvent,
+  updateEvent,
+  register,
+  deleteRegister,
+  findAllRegistrationToEvent,
+  deleteRegisterFromEvent,
+  deleteEvent
 } from './users.js';
 
 const {
@@ -149,6 +155,15 @@ const validation = [
     .withMessage("password verður að vera 3 stafir eða lengra og ekki stærra en 254"),
 ];
 
+const validationEvent = [
+  body("name")
+    .isLength({ min: 1, max: 64 })
+    .withMessage("Nafn má ekki vera tómt"),
+  body("description")
+    .isLength({ max: 254 })
+    .withMessage("Lýsingar meiga ekki vera lengri en 254 stafir"),
+];
+
 const sanitazion = [
   body("name").trim().escape(),
   body("username").trim().escape(),
@@ -157,8 +172,25 @@ const sanitazion = [
   body("password").customSanitizer((value) => xss(value)),
 ];
 
+const sanitazionEvent = [
+  body("name").trim().escape(),
+  body("name").customSanitizer((value) => xss(value)),
+  body("description").customSanitizer((value) => xss(value)),
+];
+
 const validationRegister = async (req, res, next) => {
   const { name ,username, password } = req.body;
+  const result = validationResult(req);
+
+  if (!result.isEmpty()) {
+    return res.json(result);
+  }
+
+  return next();
+};
+
+const validationRegisterEvent = async (req, res, next) => {
+  const { name ,description } = req.body;
   const result = validationResult(req);
 
   if (!result.isEmpty()) {
@@ -222,7 +254,7 @@ app.get('/events/', async(req, res) => {
   return res.status(201).json(myData);
 });
 
-app.post('/events/',requireAuthentication, async (req, res) => {
+app.post('/events/',requireAuthentication,validationEvent,validationRegisterEvent, sanitazionEvent, async (req, res) => {
   const { name = '', description = '' } = req.body;
   const user = req.user.id;
 
@@ -240,22 +272,73 @@ app.get('/events/:id', async (req, res) => {
   const { id } = req.params;
 
   const myData = await findEvent(id);
-  if((myData === false )|| (myData === [])){
+  const registration = await findAllRegistrationToEvent(id);
+  const showData = [myData, registration];
+
+  if((myData === false )|| (myData.length === 0)){
     return res.status(401).json({error: "no data to show"});
   }
-  return res.status(201).json(myData);
-
-  const item = data.find((i) => i.id === Number.parseInt(id, 10));
-
-  if (item) {
-    return res.json(item);
-  }
-
-  return res.status(404).json({ error: 'Not found' });
+  return res.status(201).json(showData);
 });
 
-app.patch('/:id', async (req, res) => {
+app.patch('/events/:id',requireAuthentication, async (req, res) => {
+  const { id } = req.params;
+  const { description = '' } = req.body;
+  const user = req.user.id;
+  const eventData = await findEvent(id);
+  const userInfo = await findById(user);
+  if((user === eventData[0].creator) || (userInfo[0].isAdmin)){
+    //check if description is not empty and has changed
+    if((description != '') && (description != eventData[0].description)){
+      const result = await updateEvent(description, id);
+      return res.status(200).json({"updated": "true"});
+    }
+    return res.status(400).json({"error": "description is the same or missing"});
+  }
+  return res.status(400).json({"error": "user did not create event and is not admin"});
 
+});
+
+app.delete('/events/:id',requireAuthentication, async (req, res) => {
+  const { id } = req.params;
+  const user = req.user.id;
+  const eventData = await findEvent(id);
+  const userInfo = await findById(user);
+  if((user === eventData[0].creator) || (userInfo.isAdmin)){
+    const del = deleteRegisterFromEvent(id);
+    const delEvent = deleteEvent(id);
+    if(delEvent){
+      res.status(200).json({"message": "event deleted"});
+    }
+  }
+  return res.status(400).json({"error": "user did not delete event"});
+
+});
+
+app.post('/events/:id/register',requireAuthentication, async (req, res) => {
+  const { id } = req.params;
+  const { comment = '' } = req.body;
+  const user = req.user.id;
+
+  console.log(id, comment, user);
+  const regi = await register(id, comment, user);
+  if(regi){
+    return res.status(201).json({'worked': 'TRUE'})
+  }
+
+  return res.status(400).json({"error": "did not register"});
+});
+
+app.delete('/events/:id/register',requireAuthentication, async (req, res) => {
+  const { id } = req.params;
+  const user = req.user.id;
+
+  const delregi = await deleteRegister(id, user);
+  if(delregi){
+    return res.status(201).json({'worked': 'TRUE'})
+  }
+
+  return res.status(400).json({"error": "did not delete registration"});
 });
 
 /*

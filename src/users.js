@@ -133,6 +133,86 @@ export async function createUser(name,username,password) {
     return null;
   }
 
+  export async function findAllRegistrationToEvent(event) {
+    const q = `SELECT * FROM registration WHERE event = $1`;
+    const values = [event];
+    try {
+      const result = await query(q, values);
+      return result.rows;
+    } catch (e) {
+      console.error('error getting registration for events');
+      return false;
+    }
+  
+    return null;
+  }
+
+  export async function register(event,comment,userId) {
+    const q = `INSERT INTO registration ("name",comment,"event",created )
+    VALUES($1, $2,$3,$4)`;
+    const values = [userId, comment, event, new Date()];
+    try {
+      const result = await query(q, values);
+      if(result){
+          return true;
+      }
+    } catch (e) {
+      console.error('error register user into event');
+      return false;
+    }
+  
+    return null;
+  }
+
+  export async function deleteRegister(event,userId) {
+    const q = `DELETE FROM registration WHERE event = $1 AND name = $2`;
+    const values = [event, userId];
+    try {
+      const result = await query(q, values);
+      if(result){
+          return true;
+      }
+    } catch (e) {
+      console.error('error deleting registration');
+      return false;
+    }
+  
+    return null;
+  }
+
+  export async function deleteRegisterFromEvent(event) {
+    const q = `DELETE FROM registration WHERE event = $1`;
+    const values = [event];
+    try {
+      const result = await query(q, values);
+      if(result){
+          return true;
+      }
+    } catch (e) {
+      console.error('error deleting registration where event = ');
+      return false;
+    }
+  
+    return null;
+  }
+
+  export async function deleteEvent(event) {
+    const q = `DELETE FROM events WHERE id = $1`;
+    const values = [event];
+    try {
+      const result = await query(q, values);
+      if(result){
+          return true;
+      }
+    } catch (e) {
+      console.error('error deleting registration where event = ');
+      return false;
+    }
+  
+    return null;
+  }
+
+
   export async function findAllEvents() {
     const q = 'SELECT name, slug, description, created, updated FROM events';
   
@@ -149,7 +229,7 @@ export async function createUser(name,username,password) {
   }
 
   export async function findEvent(id) {
-    const q = 'SELECT name, slug, description, created, updated FROM events WHERE id = $1';
+    const q = 'SELECT creator, name, slug, description, created, updated FROM events WHERE id = $1';
     const values = [id];
   
     try {
@@ -176,6 +256,23 @@ export async function createUser(name,username,password) {
 
     } catch (e) {
       console.error('Gat ekki búið til event');
+      return false;
+    }
+  
+    return null;
+  }
+
+  export async function updateEvent(description, id) {
+
+    const q = `UPDATE events SET description = $1, updated = $2 WHERE id = $3`;
+    const values = [description, new Date(), id];
+
+    try {
+      const result = await query(q, values);
+      return true;
+
+    } catch (e) {
+      console.error('Gat ekki uppfært viðburð');
       return false;
     }
   

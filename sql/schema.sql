@@ -24,11 +24,12 @@ CREATE TABLE events (
 
 CREATE TABLE registration (
   id SERIAL PRIMARY KEY,
-  "name" INTEGER not null,
+  "name" INTEGER NOT NULL,
   comment VARCHAR(255),
-  event INT,
+  "event" INT NOT NULL,
   created DATE,
-  CONSTRAINT "name" FOREIGN KEY ("name") REFERENCES users (id)
+  CONSTRAINT "name" FOREIGN KEY ("name") REFERENCES users (id),
+  CONSTRAINT "event" FOREIGN KEY ("event") REFERENCES events (id)
 );
 
 
