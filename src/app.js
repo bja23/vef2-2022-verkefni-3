@@ -30,6 +30,7 @@ const {
   PORT: port = 3000,
   JWT_SECRET: jwtSecret,
   TOKEN_LIFETIME: tokenLifetime = 20000,
+  NODE_ENV: nodeEnv = 'development',
   DATABASE_URL: databaseUrl,
 } = process.env;
 
