@@ -22,7 +22,8 @@ import {
   deleteRegister,
   findAllRegistrationToEvent,
   deleteRegisterFromEvent,
-  deleteEvent
+  deleteEvent,
+  findingRegisterion
 } from './users.js';
 
 
@@ -316,9 +317,9 @@ app.get('/users/:id', requireAuthentication, async(req, res) => {
 app.get('/events/', async(req, res) => {
   const myData = await findAllEvents();
   if(myData === false){
-    return res.status(401).json({error: "no data to show"});
+    return res.status(400).json({error: "no data to show"});
   }
-  return res.status(201).json(myData);
+  return res.status(200).json(myData);
 });
 
 app.post('/events/',requireAuthentication,validationEvent,validationRegisterEvent, sanitazionEvent, async (req, res) => {
@@ -399,12 +400,13 @@ app.post('/events/:id/register',requireAuthentication,validationRegisterToEvent,
 app.delete('/events/:id/register',requireAuthentication, async (req, res) => {
   const { id } = req.params;
   const user = req.user.id;
-
-  const delregi = await deleteRegister(id, user);
-  if(delregi){
-    return res.status(201).json({'worked': 'TRUE'})
+  const isRegisterd = await findingRegisterion(id, user);
+  if(isRegisterd){
+    const delregi = await deleteRegister(id, user);
+    if(delregi){
+      return res.status(201).json({'worked': 'TRUE'})
+    }
   }
-
   return res.status(400).json({"error": "did not delete registration"});
 });
 

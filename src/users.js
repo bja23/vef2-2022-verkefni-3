@@ -147,6 +147,8 @@ export async function createUser(name,username,password) {
     return null;
   }
 
+
+
   export async function register(event,comment,userId) {
     const q = `INSERT INTO registration ("name",comment,"event",created )
     VALUES($1, $2,$3,$4)`;
@@ -174,6 +176,25 @@ export async function createUser(name,username,password) {
       }
     } catch (e) {
       console.error('error deleting registration');
+      return false;
+    }
+  
+    return null;
+  }
+
+  export async function findingRegisterion(event,userId) {
+    const q = `SELECT FROM registration WHERE event = $1 AND name = $2`;
+    const values = [event, userId];
+    try {
+      const result = await query(q, values);
+      if(result){
+          if(result.rowCount > 0){
+              return true;
+          }
+          return false;
+      }
+    } catch (e) {
+      console.error('error finding registration');
       return false;
     }
   
