@@ -206,6 +206,16 @@ const validationRegisterEvent = async (req, res, next) => {
   return next();
 };
 
+app.get('/', (req, res) => {
+  res.json({
+    register: '/users/register',
+    login: '/users/login',
+    me: '/users/me',
+    events: '/events/',
+  });
+});
+
+
 app.post('/users/register', validation,validationRegister, sanitazion, async (req, res) => {
   const { name ,username, password } = req.body;
   const pass = await bcrypt.hash(password,10);
@@ -229,6 +239,15 @@ app.get('/users/me', requireAuthentication, async(req, res) => {
     {id: myData.id,name: myData.name, username: myData.username, token: req.user.token, }
   ];
   return res.status(201).json(showData);
+});
+
+app.get('/users/', requireAuthentication, async(req, res) => {
+  const myData = await findAllUsers();
+  const myInfo = await findById(req.user.id);
+  if(myInfo[0].isAdmin){
+    return res.status(201).json(myData);
+  }
+  return res.status(400).json({"error":'not admin'});
 });
 
 app.get('/users/:id', requireAuthentication, async(req, res) => {
@@ -456,7 +475,7 @@ app.patch('/:id', (req, res) => {
   return res.status(200).json(item);
 });
 
-/*
+/* 
 DELETE:
 > curl -X DELETE http://localhost:3000/5
 {"error":"Not found"}
