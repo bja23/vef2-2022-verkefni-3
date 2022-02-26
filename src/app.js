@@ -99,7 +99,7 @@ app.post('/users/login', async (req, res) => {
   const user = await findByUsername(username);
 
   if (!user) {
-    return res.status(401).json({ error: 'No such use' });
+    return res.status(401).json({ error: 'No such user' });
   }
 
   const passwordIsCorrect = await comparePasswords(password, user.password);
@@ -170,6 +170,18 @@ const validationEvent = [
     .withMessage("Lýsingar meiga ekki vera lengri en 254 stafir"),
 ];
 
+const validationUpdateEvent = [
+  body("description")
+    .isLength({ max: 254 })
+    .withMessage("Lýsingar meiga ekki vera lengri en 254 stafir"),
+];
+
+const validationRegisterToEvent = [
+  body("comment")
+    .isLength({ max: 254 })
+    .withMessage("Komment má ekki vera lengra en 254 stafir"),
+];
+
 const sanitazion = [
   body("name").trim().escape(),
   body("username").trim().escape(),
@@ -182,6 +194,14 @@ const sanitazionEvent = [
   body("name").trim().escape(),
   body("name").customSanitizer((value) => xss(value)),
   body("description").customSanitizer((value) => xss(value)),
+];
+
+const sanitazionUpdateEvent = [
+  body("description").customSanitizer((value) => xss(value)),
+];
+
+const sanitazionRegisterToEvent = [
+  body("comment").customSanitizer((value) => xss(value)),
 ];
 
 const validationRegister = async (req, res, next) => {
@@ -197,6 +217,28 @@ const validationRegister = async (req, res, next) => {
 
 const validationRegisterEvent = async (req, res, next) => {
   const { name ,description } = req.body;
+  const result = validationResult(req);
+
+  if (!result.isEmpty()) {
+    return res.json(result);
+  }
+
+  return next();
+};
+
+const validationRegisterUpdateEvent = async (req, res, next) => {
+  const { description } = req.body;
+  const result = validationResult(req);
+
+  if (!result.isEmpty()) {
+    return res.json(result);
+  }
+
+  return next();
+};
+
+const validationRegisterRegisterToEvent = async (req, res, next) => {
+  const { comment } = req.body;
   const result = validationResult(req);
 
   if (!result.isEmpty()) {
@@ -306,7 +348,7 @@ app.get('/events/:id', async (req, res) => {
   return res.status(201).json(showData);
 });
 
-app.patch('/events/:id',requireAuthentication, async (req, res) => {
+app.patch('/events/:id',requireAuthentication,validationUpdateEvent,validationRegisterUpdateEvent, sanitazionUpdateEvent, async (req, res) => {
   const { id } = req.params;
   const { description = '' } = req.body;
   const user = req.user.id;
@@ -340,7 +382,7 @@ app.delete('/events/:id',requireAuthentication, async (req, res) => {
 
 });
 
-app.post('/events/:id/register',requireAuthentication, async (req, res) => {
+app.post('/events/:id/register',requireAuthentication,validationRegisterToEvent,validationRegisterRegisterToEvent, sanitazionRegisterToEvent, async (req, res) => {
   const { id } = req.params;
   const { comment = '' } = req.body;
   const user = req.user.id;
@@ -364,134 +406,6 @@ app.delete('/events/:id/register',requireAuthentication, async (req, res) => {
   }
 
   return res.status(400).json({"error": "did not delete registration"});
-});
-
-/*
-POST:
-> curl -vH "Content-Type: application/json" -d '{x}' http://localhost:3000/
-{"error":"Invalid json"}
-> curl -vH "Content-Type: application/json" -d '{"title":""}' http://localhost:3000/
-{"field":"title","error":"Title must be a non-empty string"}
-> curl -vH "Content-Type: application/json" -d '{"title":"bar"}' http://localhost:3000/
-{"id":2,"title":"foo"}
-*/
-
-
-/*
-PUT:
-> curl -X PUT -H "Content-Type: application/json" -d '{"title": "asdf", "name": "Jói"}' http://localhost:3000/4
-{"error":"Not found"}
-> curl -X PUT -H "Content-Type: application/json" -d '{"title": "asdf", "name": "Jói"}' http://localhost:3000/2
-{"id":2,"title": "asdf","name": "Jói"}
-*/
-app.put('/:id', (req, res) => {
-  const { id } = req.params;
-  const { title = '', name = '' } = req.body;
-
-  const item = data.find((i) => i.id === Number.parseInt(id, 10));
-
-  if (!item) {
-    return res.status(404).json({ error: 'Not found' });
-  }
-
-  const errors = [];
-
-  // Hér ætti að vera meira robust validation
-  if (typeof title !== 'string' || title.length === 0) {
-    errors.push({
-      field: 'title',
-      error: 'Title must be a non-empty string',
-    });
-  }
-
-  if (typeof name !== 'string' || name.length === 0) {
-    errors.push({
-      field: 'name',
-      error: 'Name must be a non-empty string',
-    });
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json(errors);
-  }
-
-  item.title = title;
-  item.name = name;
-  return res.status(200).json(item);
-});
-
-/*
-PATCH:
-> curl -X PATCH -H "Content-Type: application/json" -d '{"title": "asdf"}' http://localhost:3000/4
-{"error":"Not found"}
-> curl -X PATCH -H "Content-Type: application/json" -d '{"title": "asdf"}' http://localhost:3000/2
-{"id":2,"title": "asdf","name": "Anna"}
-*/
-app.patch('/:id', (req, res) => {
-  const { id } = req.params;
-
-  // verðum að vita hvort gögnin séu send inn eða aðeins falsy
-  const { title, name } = req.body;
-
-  const item = data.find((i) => i.id === Number.parseInt(id, 10));
-
-  if (!item) {
-    return res.status(404).json({ error: 'Not found' });
-  }
-
-  const errors = [];
-
-  // Þetta gæti valdið vandræðum ef title mætti vera uppfært sem tómi strengur
-  if (!isEmpty(title)) {
-    if (typeof title !== 'string' || title.length === 0) {
-      errors.push({
-        field: 'title',
-        error: 'Title must be a non-empty string',
-      });
-    }
-  }
-
-  if (!isEmpty(name)) {
-    if (typeof name !== 'string' || name.length === 0) {
-      errors.push({
-        field: 'name',
-        error: 'Name must be a non-empty string',
-      });
-    }
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json(errors);
-  }
-
-  if (!isEmpty(title)) {
-    item.title = title;
-  }
-
-  if (!isEmpty(name)) {
-    item.name = name;
-  }
-
-  return res.status(200).json(item);
-});
-
-/* 
-DELETE:
-> curl -X DELETE http://localhost:3000/5
-{"error":"Not found"}
-> curl -X DELETE http://localhost:3000/2
-*/
-app.delete('/:id', (req, res) => {
-  const { id } = req.params;
-
-  const item = data.find((i) => i.id === Number.parseInt(id, 10));
-
-  if (item) {
-    data.splice(data.indexOf(item), 1);
-    return res.status(204).end();
-  }
-
-  return res.status(404).json({ error: 'Not found' });
 });
 
 app.use((req, res) => {
