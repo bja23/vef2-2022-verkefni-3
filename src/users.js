@@ -93,8 +93,6 @@ export async function findAllUsers() {
       console.error('Gat ekki fundið notanda eftir notendnafni');
       return null;
     }
-  
-    return false;
   }
 
 
@@ -134,7 +132,7 @@ export async function createUser(name,username,password) {
   }
 
   export async function findAllRegistrationToEvent(event) {
-    const q = `SELECT * FROM registration WHERE event = $1`;
+    const q = 'SELECT * FROM registration WHERE event = $1';
     const values = [event];
     try {
       const result = await query(q, values);
@@ -143,8 +141,6 @@ export async function createUser(name,username,password) {
       console.error('error getting registration for events');
       return false;
     }
-  
-    return null;
   }
 
 
@@ -167,7 +163,7 @@ export async function createUser(name,username,password) {
   }
 
   export async function deleteRegister(event,userId) {
-    const q = `DELETE FROM registration WHERE event = $1 AND name = $2`;
+    const q = 'DELETE FROM registration WHERE event = $1 AND name = $2';
     const values = [event, userId];
     try {
       const result = await query(q, values);
@@ -183,7 +179,7 @@ export async function createUser(name,username,password) {
   }
 
   export async function findingRegisterion(event,userId) {
-    const q = `SELECT FROM registration WHERE event = $1 AND name = $2`;
+    const q = 'SELECT FROM registration WHERE event = $1 AND name = $2';
     const values = [event, userId];
     try {
       const result = await query(q, values);
@@ -202,7 +198,7 @@ export async function createUser(name,username,password) {
   }
 
   export async function deleteRegisterFromEvent(event) {
-    const q = `DELETE FROM registration WHERE event = $1`;
+    const q = 'DELETE FROM registration WHERE event = $1';
     const values = [event];
     try {
       const result = await query(q, values);
@@ -218,7 +214,7 @@ export async function createUser(name,username,password) {
   }
 
   export async function deleteEvent(event) {
-    const q = `DELETE FROM events WHERE id = $1`;
+    const q = 'DELETE FROM events WHERE id = $1';
     const values = [event];
     try {
       const result = await query(q, values);
@@ -245,12 +241,11 @@ export async function createUser(name,username,password) {
       console.error('Gat ekki fundið events');
       return false;
     }
-  
-    return null;
   }
 
   export async function findEvent(id) {
-    const q = 'SELECT creator, name, slug, description, created, updated FROM events WHERE id = $1';
+    const q = `SELECT "creator", name, slug, description, created, updated 
+                FROM events WHERE id = $1`;
     const values = [id];
   
     try {
@@ -261,43 +256,6 @@ export async function createUser(name,username,password) {
       console.error('Gat ekki fundið events');
       return false;
     }
-  
-    return null;
-  }
-
-  export async function createEvent(name, description, id) {
-    const slug = getSlug(name);
-
-    const q = `INSERT INTO events ("creator", name, slug, description, created, updated)
-        VALUES($1, $2, $3, $4, $5, $6)`;
-    const values = [id, name,slug, description,new Date(),new Date()];
-    try {
-      const result = await query(q, values);
-      return true;
-
-    } catch (e) {
-      console.error('Gat ekki búið til event');
-      return false;
-    }
-  
-    return null;
-  }
-
-  export async function updateEvent(description, id) {
-
-    const q = `UPDATE events SET description = $1, updated = $2 WHERE id = $3`;
-    const values = [description, new Date(), id];
-
-    try {
-      const result = await query(q, values);
-      return true;
-
-    } catch (e) {
-      console.error('Gat ekki uppfært viðburð');
-      return false;
-    }
-  
-    return null;
   }
 
   export function getSlug(name){
@@ -324,3 +282,36 @@ export async function createUser(name,username,password) {
    const slug = slug2.join('');
    return slug;
   }
+
+  export async function createEvent(name, description, id) {
+    const slug = getSlug(name);
+
+    const q = `INSERT INTO events ("creator", name, slug, description, created, updated)
+        VALUES($1, $2, $3, $4, $5, $6)`;
+    const values = [id, name,slug, description,new Date(),new Date()];
+    try {
+      await query(q, values);
+      return true;
+
+    } catch (e) {
+      console.error('Gat ekki búið til event');
+      return false;
+    }
+  }
+
+  export async function updateEvent(description, id) {
+
+    const q = 'UPDATE events SET description = $1, updated = $2 WHERE id = $3';
+    const values = [description, new Date(), id];
+
+    try {
+      await query(q, values);
+      return true;
+
+    } catch (e) {
+      console.error('Gat ekki uppfært viðburð');
+      return false;
+    }
+  }
+
+  
